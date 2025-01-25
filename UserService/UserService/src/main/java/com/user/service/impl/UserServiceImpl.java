@@ -49,7 +49,16 @@ public class UserServiceImpl implements UserService{
 
 	@Override
 	public List<User> getAllUser() {
-		return this.userRepository.findAll();
+		 List<User> allUser = this.userRepository.findAll();
+		 allUser.forEach(user -> {
+			 List<Rating> ratingsOfUserByUser = this.ratingService.getRatingsOfUserByUserId(user.getUserId());
+			 List<Rating> ratingList = ratingsOfUserByUser.stream().map(rating -> {
+				 rating.setHotel(this.hotelService.getHotelById(rating.getHotelId()));
+				 return rating;
+			 }).collect(Collectors.toList());
+			 user.setRatings(ratingList);
+		 });
+		 return allUser;
 	}
 	
 

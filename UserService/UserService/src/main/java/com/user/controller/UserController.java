@@ -3,6 +3,7 @@ package com.user.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.user.entity.User;
 import com.user.service.UserService;
+
+import ch.qos.logback.classic.Logger;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 
 @RestController
 @RequestMapping("/user")
@@ -26,6 +30,7 @@ public class UserController {
 	}
 	
 	@PostMapping("/{userId}")
+	@CircuitBreaker(name = "ratingHotelBreaker",fallbackMethod = "ratingHotelFallBack")
 	public ResponseEntity<User> getUserById(@PathVariable String userId) {
 		return ResponseEntity.ok(this.userService.getSingleUserById(userId));
 	}
@@ -35,6 +40,15 @@ public class UserController {
 		return ResponseEntity.ok(this.userService.getAllUser());
 	}
 	
-	
-
+	public ResponseEntity<User> ratingHotelFallBack(String userId, Exception exception) {
+		System.out.println(exception.getMessage());
+		User user = User.builder()
+		.name("Dummy-Name")
+		.email("dummy@email.com")
+		.about("Dummy about")
+		.userId("DummyuserID")
+		.build();
+		
+		return new ResponseEntity<>(user,HttpStatus.OK);
+	}
 }

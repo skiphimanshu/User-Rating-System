@@ -16,6 +16,7 @@ import com.user.service.UserService;
 
 import ch.qos.logback.classic.Logger;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 
 @RestController
 @RequestMapping("/user")
@@ -28,10 +29,13 @@ public class UserController {
 	public ResponseEntity<User> addUser(@RequestBody User user) {
 		return ResponseEntity.ok(this.userService.addUser(user));		
 	}
-	
+	int retry = 1;
 	@PostMapping("/{userId}")
-	@CircuitBreaker(name = "ratingHotelBreaker",fallbackMethod = "ratingHotelFallBack")
+	//@CircuitBreaker(name = "ratingHotelBreaker",fallbackMethod = "ratingHotelFallBack")
+	@Retry(name="ratingHotelService",fallbackMethod = "ratingHotelFallBack")
 	public ResponseEntity<User> getUserById(@PathVariable String userId) {
+		System.out.println(retry);
+		retry++;
 		return ResponseEntity.ok(this.userService.getSingleUserById(userId));
 	}
 	
